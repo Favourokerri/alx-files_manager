@@ -1,11 +1,6 @@
-const crypto = require('crypto');
 const dbClient = require('../utils/db');
+const sha1 = require('sha1');
 
-function hashPassword(password) {
-  const sha1 = crypto.createHash('sha1');
-  sha1.update(password);
-  return sha1.digest();
-}
 
 async function postNew(req, res) {
   const { email, password } = req.body;
@@ -18,7 +13,7 @@ async function postNew(req, res) {
   if (user) {
     res.status(400).json({ error: 'Already exist' });
   } else {
-    const userData = await dbClient.db.collection('users').insertOne({ email, password: hashPassword(password) });
+    const userData = await dbClient.db.collection('users').insertOne({ email, password: sha1(password) });
 
     res.status(201).json({ id: userData.ops[0]._id, email });
   }
