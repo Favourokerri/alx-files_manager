@@ -10,13 +10,13 @@ function hashPassword(password) {
 async function postNew(req, res) {
   const { email, password } = req.body;
   if (!email) {
-    res.status(400).send('{"error":"Missing email"}');
+    res.status(400).json({ error: 'Missing email' });
   } else if (!password) {
-    res.status(400).send('{"error":"Missing password"}');
+    res.status(400).json({ error: 'Missing password' });
   }
   const user = await dbClient.db.collection('users').findOne({ email });
   if (user) {
-    res.status(400).send('{"error":"Already exist"}');
+    res.status(400).json({ error: 'Already exist' });
   } else {
     const userData = await dbClient.db.collection('users').insertOne({ email, password: hashPassword(password) });
 
