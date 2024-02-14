@@ -1,5 +1,6 @@
 const sha1 = require('sha1');
 const dbClient = require('../utils/db');
+const redisClient = require('../utils/redis');
 
 async function postNew(req, res) {
   const { email, password } = req.body;
@@ -19,4 +20,19 @@ async function postNew(req, res) {
   }
 }
 
-module.exports = { postNew };
+async function getMe(req, res) {
+  const userToken = req.get('X-token');
+
+  if (userToken) {
+    const userId = await redisClient.get(`auth_${userToken}`);
+    if (userId) {
+      const user = await dbClient.db.collection('users').findOne({ email: 'bob@dylan.com' });
+      if (user) {
+        res.send({ id: user._id, email: user.email });
+        return;
+      }
+    }
+  }
+  res.status(401).json({ error: 'Unauthorized' });
+}
+module.exports = { postNew, getMe };
