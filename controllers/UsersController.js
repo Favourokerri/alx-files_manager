@@ -1,8 +1,7 @@
 const sha1 = require('sha1');
+const { ObjectId } = require('mongodb');
 const dbClient = require('../utils/db');
 const redisClient = require('../utils/redis');
-const { ObjectId } = require('mongodb');
-
 
 async function postNew(req, res) {
   const { email, password } = req.body;
@@ -28,7 +27,7 @@ async function getMe(req, res) {
   if (userToken) {
     const userId = await redisClient.get(`auth_${userToken}`);
     if (userId) {
-      const user = await dbClient.db.collection('users').findOne({ _id: ObjectId(userId)});
+      const user = await dbClient.db.collection('users').findOne({ _id: ObjectId(userId) });
       if (user) {
         res.send({ id: user._id, email: user.email });
         return;
