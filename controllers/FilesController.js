@@ -50,9 +50,9 @@ async function postUpload(req, res) {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
       let p = fileParent.parentId;
-      while (p !== ObjectId(0)) {
+      while (p !== 0 && p !== '0') {
         // eslint-disable-next-line no-await-in-loop
-        const temp = await dbClient.db.collection('files').findOne({ _id: p });
+        const temp = await dbClient.db.collection('files').findOne({ _id: ObjectId(p) });
         p = temp.parentId;
         parentDir = `/${temp._id}${parentDir}`;
       }
