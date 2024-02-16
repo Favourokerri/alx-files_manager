@@ -93,11 +93,11 @@ async function getShow(req, res) {
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId });
+    const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
     if (!file) {
-      return res.status(404).json({ error: 'Not Found' });
+      return res.status(404).json({ error: 'Not found' });
     }
-    const finalOutput = file.ops[0];
+    const finalOutput = file;
     finalOutput.id = finalOutput._id;
     delete finalOutput._id;
     return res.json(finalOutput);
