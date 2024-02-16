@@ -52,7 +52,7 @@ async function postUpload(req, res) {
       const newFile = await dbClient.db.collection('files').insertOne({
         name, type, parentId, isPublic, userId,
       });
-      return res.status(201).json(newFile);
+      return res.status(201).json(newFile.ops[0]);
     }
     const defaultFolder = process.env.FOLDER_PATH || '/tmp/files_manager';
     storeFile(defaultFolder, uuidv4(), data);
