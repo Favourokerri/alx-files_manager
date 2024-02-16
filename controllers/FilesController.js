@@ -38,6 +38,7 @@ async function postUpload(req, res) {
     } if (!data && type !== 'folder') {
       return res.status(400).json({ error: 'Missing data' });
     }
+    let parentDir = '/';
     if (parentId !== '0') {
       const fileParent = await dbClient.db.collection('files').findOne({ _id: ObjectId(parentId) });
 
@@ -47,20 +48,34 @@ async function postUpload(req, res) {
       if (fileParent && fileParent.type !== 'folder') {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
+      let p = fileParent.parentId;
+      while (p !== '0') {
+        // eslint-disable-next-line no-await-in-loop
+        const temp = await dbClient.db.collection('files').findOne({ _id: ObjectId(p) });
+        p = temp.parentId;
+        parentDir = `/${temp._id}${parentDir}`;
+      }
+      console.log('parent=======', parentDir);
     }
+    const defaultFolder = process.env.FOLDER_PATH || '/tmp/files_manager';
+    const totalFolders = path.join(defaultFolder, parentDir);
     if (type === 'folder') {
       const newFile = await dbClient.db.collection('files').insertOne({
         name, type, parentId, isPublic, userId,
       });
+
+      fs.mkdirSync(totalFolders, { recursive: true }, (err) => {
+        if (err) throw err;
+      });
+      console.log('heeeyyyyyyyyyyyyyyyyyyyy');
       return res.status(201).json(newFile.ops[0]);
     }
-    const defaultFolder = process.env.FOLDER_PATH || '/tmp/files_manager';
-    storeFile(defaultFolder, uuidv4(), data);
+    storeFile(totalFolders, uuidv4(), data);
     const information = {
       name, type, parentId, isPublic, userId,
     };
     if (parentId !== '0') {
-      information.localPath = path.join(defaultFolder, parentId);
+      information.localPath = path.join(totalFolders, parentId);
     }
     const newFile = await dbClient.db.collection('files').insertOne(information);
     return res.status(201).json(newFile.ops[0]);
