@@ -13,5 +13,7 @@ stRoutes.get('/connect', AuthController.getConnect);
 stRoutes.get('/disconnect', AuthController.getDisconnect);
 stRoutes.get('/users/me', UsersController.getMe);
 stRoutes.post('/files', FilesController.postUpload);
+stRoutes.get('/files', FilesController.getIndex);
+stRoutes.get('/files/:id', FilesController.getShow);
 
 module.exports = stRoutes;

@@ -13,7 +13,6 @@ function storeFile(directoryPath, file, data) {
     });
   }
   const filePath = path.join(directoryPath, file);
-  console.log('welll come', filePath);
   const base64Content = Buffer.from(data).toString();
   fs.writeFile(filePath, base64Content, 'base64', (err) => {
     if (err) throw err;
@@ -56,10 +55,8 @@ async function postUpload(req, res) {
         p = temp.parentId;
         parentDir = `/${temp._id}${parentDir}`;
       }
-      console.log('parent=======', parentDir);
     }
     const defaultFolder = process.env.FOLDER_PATH || '/tmp/files_manager';
-    console.log('diffffffff', defaultFolder, process.env.FOLDER_PATH);
     const totalFolders = path.join(defaultFolder, parentDir);
     if (type === 'folder') {
       const newFile = await dbClient.db.collection('files').insertOne({
@@ -69,7 +66,6 @@ async function postUpload(req, res) {
       fs.mkdirSync(totalFolders, { recursive: true }, (err) => {
         if (err) throw err;
       });
-      console.log('heeeyyyyyyyyyyyyyyyyyyyy');
       const finalOutput = newFile.ops[0];
       finalOutput.id = finalOutput._id;
       delete finalOutput._id;
@@ -89,16 +85,60 @@ async function postUpload(req, res) {
   return res.status(500).json({ error: 'something went wrong' });
 }
 
-// function getShow(req, res) {
-//   req;
-//   res;
-// }
-// function getIndex(req, res) {
-//   req;
-//   res;
-// }
+async function getShow(req, res) {
+  const userToken = req.get('X-token');
+
+  if (userToken) {
+    const userId = await redisClient.get(`auth_${userToken}`);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId });
+    if (!file) {
+      return res.status(404).json({ error: 'Not Found' });
+    }
+    const finalOutput = file.ops[0];
+    finalOutput.id = finalOutput._id;
+    delete finalOutput._id;
+    return res.json(finalOutput);
+  }
+  return res.status(401).json({ error: 'Unauthorized' });
+}
+async function getIndex(req, res) {
+  const userToken = req.get('X-token');
+
+  if (userToken) {
+    const userId = await redisClient.get(`auth_${userToken}`);
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const parentId = req.query.parentId || 0;
+    const page = req.query.page || 0;
+
+    const skip = (page) * 20;
+
+    const pipeline = [
+      { $match: { parentId, userId } },
+      { $skip: skip },
+      { $limit: 20 },
+    ];
+
+    const files = await dbClient.db.collection('files').aggregate(pipeline).toArray();
+    const result = [];
+    for (const f of files) {
+      const finalOutput = f;
+      finalOutput.id = finalOutput._id;
+      delete finalOutput._id;
+      result.push(finalOutput);
+    }
+
+    return res.json(result);
+  }
+  return res.status(401).json({ error: 'Unauthorized' });
+}
+
 module.exports = {
   postUpload,
-  // getShow,
-  // getIndex,
+  getShow,
+  getIndex,
 };
