@@ -148,13 +148,15 @@ async function putPublish(req, res) {
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const file = await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: true } });
-    console.log('??????', file.modifiedCount);
-    if (!file.modifiedCount) {
+    const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
+
+    if (!file) {
       return res.status(404).json({ error: 'Not found' });
     }
-    const fileed = await dbClient.db.collection('files').find({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
-    const finalOutput = fileed;
+    const filee = await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: true } });
+    const file2 = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
+    
+    const finalOutput = file2;
     finalOutput.id = finalOutput._id;
     delete finalOutput._id;
     return res.json(finalOutput);
@@ -169,13 +171,15 @@ async function putUnpublish(req, res) {
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const file = await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: false } });
-    console.log('??????', file.modifiedCount);
-    if (!file.modifiedCount) {
+    const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
+
+    if (!file) {
       return res.status(404).json({ error: 'Not found' });
     }
-    const fileed = await dbClient.db.collection('files').find({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
-    const finalOutput = fileed;
+    const filee = await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: false } });
+    const file2 = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
+    
+    const finalOutput = file2;
     finalOutput.id = finalOutput._id;
     delete finalOutput._id;
     return res.json(finalOutput);
