@@ -104,6 +104,9 @@ async function getShow(req, res) {
   }
   return res.status(401).json({ error: 'Unauthorized' });
 }
+
+
+
 async function getIndex(req, res) {
   const userToken = req.get('X-token');
 
@@ -112,18 +115,18 @@ async function getIndex(req, res) {
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const parentId = req.query.parentId || 0;
+    parentId = ObjectId(req.query.parentId) || '0';
     const page = req.query.page || 0;
 
     const skip = (page) * 20;
 
     const pipeline = [
-      { $match: { parentId, userId } },
+      { $match: {  parentId: '0',userId: ObjectId(userId) } },
       { $skip: skip },
       { $limit: 20 },
     ];
-
     const files = await dbClient.db.collection('files').aggregate(pipeline).toArray();
+    console.log("======",userId, files);
     const result = [];
     for (const f of files) {
       const finalOutput = f;
