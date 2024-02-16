@@ -13,11 +13,12 @@ function storeFile(directoryPath, file, data) {
     });
   }
   const filePath = path.join(directoryPath, file);
-
+  console.log('welll come', filePath);
   const base64Content = Buffer.from(data).toString();
   fs.writeFile(filePath, base64Content, 'base64', (err) => {
     if (err) throw err;
   });
+  return filePath;
 }
 
 async function postUpload(req, res) {
@@ -29,7 +30,7 @@ async function postUpload(req, res) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const { name, type, data } = req.body;
-    const parentId = req.body.parentId || '0';
+    const parentId = req.body.parentId || 0;
     const isPublic = req.body.isPublic || false;
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });
@@ -39,7 +40,7 @@ async function postUpload(req, res) {
       return res.status(400).json({ error: 'Missing data' });
     }
     let parentDir = '/';
-    if (parentId !== '0') {
+    if (parentId !== 0) {
       const fileParent = await dbClient.db.collection('files').findOne({ _id: ObjectId(parentId) });
 
       if (!fileParent) {
@@ -49,7 +50,7 @@ async function postUpload(req, res) {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
       let p = fileParent.parentId;
-      while (p !== '0') {
+      while (p !== 0) {
         // eslint-disable-next-line no-await-in-loop
         const temp = await dbClient.db.collection('files').findOne({ _id: ObjectId(p) });
         p = temp.parentId;
@@ -58,6 +59,7 @@ async function postUpload(req, res) {
       console.log('parent=======', parentDir);
     }
     const defaultFolder = process.env.FOLDER_PATH || '/tmp/files_manager';
+    console.log('diffffffff', defaultFolder, process.env.FOLDER_PATH);
     const totalFolders = path.join(defaultFolder, parentDir);
     if (type === 'folder') {
       const newFile = await dbClient.db.collection('files').insertOne({
@@ -70,17 +72,28 @@ async function postUpload(req, res) {
       console.log('heeeyyyyyyyyyyyyyyyyyyyy');
       return res.status(201).json(newFile.ops[0]);
     }
-    storeFile(totalFolders, uuidv4(), data);
+
     const information = {
       name, type, parentId, isPublic, userId,
     };
-    if (parentId !== '0') {
-      information.localPath = path.join(totalFolders, parentId);
-    }
+    information.localPath = storeFile(defaultFolder, uuidv4(), data);
     const newFile = await dbClient.db.collection('files').insertOne(information);
-    return res.status(201).json(newFile.ops[0]);
+    const finalOutput = newFile.ops[0];
+    finalOutput.id = finalOutput._id;
+    delete finalOutput._id;
+    return res.status(201).json(finalOutput);
   }
   return res.status(500).json({ error: 'something went wrong' });
 }
 
-module.exports = { postUpload };
+// function getShow(req, res) {
+
+// }
+// function getIndex(req, res) {
+
+// }
+module.exports = {
+  postUpload,
+  // getShow,
+  // getIndex
+};
