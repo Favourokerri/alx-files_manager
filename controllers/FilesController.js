@@ -50,7 +50,7 @@ async function postUpload(req, res) {
         return res.status(400).json({ error: 'Parent is not a folder' });
       }
       let p = fileParent.parentId;
-      while (p !== 0) {
+      while (p !== 0 && p !== '0') {
         // eslint-disable-next-line no-await-in-loop
         const temp = await dbClient.db.collection('files').findOne({ _id: ObjectId(p) });
         p = temp.parentId;
@@ -70,6 +70,9 @@ async function postUpload(req, res) {
         if (err) throw err;
       });
       console.log('heeeyyyyyyyyyyyyyyyyyyyy');
+      const finalOutput = newFile.ops[0];
+      finalOutput.id = finalOutput._id;
+      delete finalOutput._id;
       return res.status(201).json(newFile.ops[0]);
     }
 
@@ -87,13 +90,15 @@ async function postUpload(req, res) {
 }
 
 // function getShow(req, res) {
-
+//   req;
+//   res;
 // }
 // function getIndex(req, res) {
-
+//   req;
+//   res;
 // }
 module.exports = {
   postUpload,
   // getShow,
-  // getIndex
+  // getIndex,
 };
