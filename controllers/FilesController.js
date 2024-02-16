@@ -153,9 +153,9 @@ async function putPublish(req, res) {
     if (!file) {
       return res.status(404).json({ error: 'Not found' });
     }
-    const filee = await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: true } });
+    await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: true } });
     const file2 = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
-    
+
     const finalOutput = file2;
     finalOutput.id = finalOutput._id;
     delete finalOutput._id;
@@ -176,9 +176,9 @@ async function putUnpublish(req, res) {
     if (!file) {
       return res.status(404).json({ error: 'Not found' });
     }
-    const filee = await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: false } });
+    await dbClient.db.collection('files').updateOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) }, { $set: { isPublic: false } });
     const file2 = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id), userId: ObjectId(userId) });
-    
+
     const finalOutput = file2;
     finalOutput.id = finalOutput._id;
     delete finalOutput._id;
@@ -186,10 +186,15 @@ async function putUnpublish(req, res) {
   }
   return res.status(401).json({ error: 'Unauthorized' });
 }
+
+// async function getFile(req, res) {
+
+// }
 module.exports = {
   postUpload,
   getShow,
   getIndex,
   putPublish,
   putUnpublish,
+  // getFile
 };
