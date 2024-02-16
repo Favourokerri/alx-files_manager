@@ -16,5 +16,6 @@ stRoutes.post('/files', FilesController.postUpload);
 stRoutes.get('/files', FilesController.getIndex);
 stRoutes.get('/files/:id', FilesController.getShow);
 stRoutes.put('/files/:id/publish', FilesController.putPublish);
-stRoutes.put('/files/:id/publish', FilesController.putUnpublish);
+stRoutes.put('/files/:id/unpublish', FilesController.putUnpublish);
+// stRoutes.put('/files/:id/data', FilesController.getFile);
 module.exports = stRoutes;
