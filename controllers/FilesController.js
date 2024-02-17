@@ -60,7 +60,7 @@ async function postUpload(req, res) {
     const totalFolders = path.join(defaultFolder, parentDir);
     if (type === 'folder') {
       const newFile = await dbClient.db.collection('files').insertOne({
-        name, type, parentId, isPublic, userId : ObjectId(userId),
+        name, type, parentId, isPublic, userId: ObjectId(userId),
       });
 
       fs.mkdirSync(totalFolders, { recursive: true }, (err) => {
@@ -186,38 +186,40 @@ async function putUnpublish(req, res) {
 }
 
 async function getFile(req, res) {
-  console.log('here ============');
-
-  const fileId = req.params.id;
-  const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id)});
+  const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id) });
+  console.log(file);
   if (!file) {
     return res.status(404).json({ error: 'Not found' });
   }
-  if (file.isPublic !== false) {
+  if (file.isPublic === false) {
     const userToken = req.get('X-token');
     if (userToken) {
       const userId = await redisClient.get(`auth_${userToken}`);
       if (!userId || userId !== `${file.userId}`) {
         return res.status(404).json({ error: 'Not found' });
-      } 
-      if (file.type === 'folder') {
-       return res.status(400).json({error: "A folder doesn't have content"}) 
       }
-  }
-  if (!fs.existsSync(file.localPath)) {
-    return res.status(404).json({ error: 'Not found' });
+      if (file.type === 'folder') {
+        return res.status(400).json({ error: "A folder doesn't have content" });
+      }
+    } else {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    if (!fs.existsSync(file.localPath)) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
   }
   const mimeType = mime.lookup(file.localPath);
 
   fs.readFile(file.localPath, (err, data) => {
-      if (err) {
-          return res.status(500).send('Error reading file');
-      }
+    if (err) {
+        return res.status(404).json({ error: 'Not found' });
+    }
 
-      res.setHeader('Content-Type', mimeType);
-      res.send(data);
-    });
-} 
+    res.setHeader('Content-Type', mimeType);
+    return res.send(data);
+  });
+  // return res.status(404).json({ error: 'Not found' });
 }
 module.exports = {
   postUpload,
@@ -225,5 +227,5 @@ module.exports = {
   getIndex,
   putPublish,
   putUnpublish,
-  getFile
+  getFile,
 };
