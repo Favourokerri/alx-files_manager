@@ -185,6 +185,7 @@ async function putUnpublish(req, res) {
   return res.status(401).json({ error: 'Unauthorized' });
 }
 
+// eslint-disable-next-line consistent-return
 async function getFile(req, res) {
   const file = await dbClient.db.collection('files').findOne({ _id: ObjectId(req.params.id) });
   console.log(file);
@@ -198,28 +199,28 @@ async function getFile(req, res) {
       if (!userId || userId !== `${file.userId}`) {
         return res.status(404).json({ error: 'Not found' });
       }
-
+      if (file.type === 'folder') {
+        return res.status(400).json({ error: "A folder doesn't have content" });
+      }
     } else {
       return res.status(404).json({ error: 'Not found' });
     }
     if (!fs.existsSync(file.localPath)) {
       return res.status(404).json({ error: 'Not found' });
     }
-  }
-  if (file.type === 'folder') {
+  } else if (file.type === 'folder') {
     return res.status(400).json({ error: "A folder doesn't have content" });
   }
+
   const mimeType = mime.lookup(file.localPath);
-  console.log(file, file.localPath, ">>>>>>>>>");
+  console.log(file, file.localPath, '>>>>>>>>>');
   fs.readFile(file.localPath, (err, data) => {
     if (err) {
       return res.status(404).json({ error: 'Not found' });
-    } else {
-      res.setHeader('Content-Type', mimeType);
-      return res.send(data);
     }
+    res.setHeader('Content-Type', mimeType);
+    return res.send(data);
   });
-  // return res.status(404).json({ error: 'Not found' });
 }
 module.exports = {
   postUpload,
