@@ -198,26 +198,26 @@ async function getFile(req, res) {
       if (!userId || userId !== `${file.userId}`) {
         return res.status(404).json({ error: 'Not found' });
       }
-      if (file.type === 'folder') {
-        return res.status(400).json({ error: "A folder doesn't have content" });
-      }
+
     } else {
       return res.status(404).json({ error: 'Not found' });
     }
     if (!fs.existsSync(file.localPath)) {
       return res.status(404).json({ error: 'Not found' });
     }
-
+  }
+  if (file.type === 'folder') {
+    return res.status(400).json({ error: "A folder doesn't have content" });
   }
   const mimeType = mime.lookup(file.localPath);
-
+  console.log(file, file.localPath, ">>>>>>>>>");
   fs.readFile(file.localPath, (err, data) => {
     if (err) {
-        return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: 'Not found' });
+    } else {
+      res.setHeader('Content-Type', mimeType);
+      return res.send(data);
     }
-
-    res.setHeader('Content-Type', mimeType);
-    return res.send(data);
   });
   // return res.status(404).json({ error: 'Not found' });
 }
