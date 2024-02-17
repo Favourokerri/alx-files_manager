@@ -18,7 +18,7 @@ async function getConnect(req, res) {
         res.status(401).json({ error: 'Unauthorized' });
       } else {
         const token = uuidv4();
-        redisClient.set(`auth_${token}`, user._id, 24 * 60 * 60);
+        redisClient.set(`auth_${token}`, `${user._id}`, 24 * 60 * 60);
         res.set('X-Token', token);
         res.status(200).json({ token });
       }
